@@ -63,6 +63,13 @@ const ServiceSchema = new mongoose.Schema({
           endTime: { type: String, default: '' } 
         }
       },
+}, { 
+  toJSON: { 
+    transform: (doc, ret) => {
+      delete ret.__v; // Remove the `__v` field before sending to the client
+      return ret;
+    }
+  }
 });
 
 module.exports = mongoose.model('Service', ServiceSchema);
