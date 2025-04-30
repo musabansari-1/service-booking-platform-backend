@@ -3,6 +3,7 @@ const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
 const serviceRoutes = require('./routes/serviceRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const authRoutes = require('./routes/authRoutes');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const path = require('path');
@@ -22,9 +23,11 @@ app.use(express.json());
 
 // Define routes
 
+app.use('/api/auth', authRoutes);
+
 app.use('/api/users', userRoutes);
 
-app.use('/api/services', serviceRoutes);
+app.use('/api/services',  serviceRoutes);
 
 app.use('/api/bookings', bookingRoutes);
 
