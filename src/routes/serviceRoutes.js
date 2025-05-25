@@ -4,6 +4,7 @@ const Service = require('../models/Service');
 const path = require('path');
 const fs = require('fs');
 const Slot = require('../models/Slot');
+const auth = require('../middlewares/auth');
 
 const router = express.Router();
 
@@ -107,7 +108,7 @@ router.post('/', upload.single('image'), async (req, res) => {
   }
 });
 
-router.put('/:id', upload.single('image'), async (req, res) => {
+router.put('/:id', auth,  upload.single('image'), async (req, res) => {
   const { id } = req.params;
   const { name, description, price, duration } = req.body;
   const { file } = req;
@@ -141,7 +142,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
 
 
 // Route to delete a specific service by ID
-router.delete('/:id', async (req, res) => {
+router.delete('/:id',   async (req, res) => {
   try {
     const service = await Service.findById(req.params.id);
 
@@ -184,7 +185,7 @@ router.get('/', async (req, res) => {
 });
 
 // Route to get a specific service by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id',  async (req, res) => {
   try {
     const service = await Service.findById(req.params.id);
 
@@ -199,10 +200,11 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/slots', async (req,res) => {
+router.post('/slots',auth,  async (req,res) => {
   const {serviceId} = req.body;
   const slots = await Slot.find({
     serviceId: serviceId,
+     isBooked: false,
   })
   if (slots.length == 0) {
     return res.json({message: 'No slots found'});

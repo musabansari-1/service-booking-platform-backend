@@ -6,7 +6,7 @@ const { signToken, verifyToken } = require('../utils/jwt');  // Import JWT funct
 // **Register route (sign up)**
 
 exports.register = async (req, res) => {
-    const {username, email, password } = req.body;
+    const {username, email, password, type } = req.body;
   
     try {
       // Check if the email already exists
@@ -23,6 +23,7 @@ exports.register = async (req, res) => {
         email,
         password: hashedPassword,
         username,
+        type
       });
   
       // Save the new user to the database
