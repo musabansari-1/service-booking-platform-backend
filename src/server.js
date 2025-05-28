@@ -33,6 +33,10 @@ app.use('/api/bookings', bookingRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+app.use('/',(req,res,next) => {
+  res.json({message: 'Server is running'});
+})
+
 
 
 
