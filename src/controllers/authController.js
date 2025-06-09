@@ -1,12 +1,13 @@
 // routes/auth.js
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 const { signToken, verifyToken } = require('../utils/jwt');  // Import JWT functions
 
 // **Register route (sign up)**
 
 exports.register = async (req, res) => {
-    const {username, email, password, type } = req.body;
+    const {firstName, lastName, gender, dob, email, password, type } = req.body;
   
     try {
       // Check if the email already exists
@@ -20,9 +21,12 @@ exports.register = async (req, res) => {
   
       // Create a new user
       const newUser = new User({
+        firstName, 
+        lastName, 
+        gender, 
+        dob,
         email,
         password: hashedPassword,
-        username,
         type
       });
   
@@ -70,6 +74,31 @@ exports.login = async (req, res) => {
       console.error(err);
       res.status(500).json({ message: 'Server error' });
     }
+  }
+
+  exports.getCurrentUser = async (req, res, next) => {
+    console.log('Inside me endpoint');
+    const authHeader = req.headers.authorization;
+  
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ user: null, message: 'No token provided' });
+    }
+  
+    const token = authHeader.split(' ')[1];
+
+    console.log("JWT_SECRET:", process.env.JWT_SECRET);
+
+  
+    // try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('decoded', decoded);
+
+      const user = await User.findById(decoded.id);
+      
+      return res.json({ user }); // optionally only send user id/email
+    // } catch (err) {
+    //   return res.status(401).json({ user: null, message: 'Invalid token' });
+    // }
   }
 
 
