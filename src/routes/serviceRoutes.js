@@ -35,41 +35,85 @@ const addMinutesToTime = (time, minutesToAdd) => {
   return `${updatedHours}:${updatedMinutes}`;
 }
 
-const generateSlots = async (serviceId, availability, duration) => {
-  console.log('inside generateSlots')
+// const generateSlots = async (serviceId, availability, duration) => {
+//   console.log('inside generateSlots')
+//   const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+//   const currentDate = new Date();
+//   for (let i = 0; i < 10; i++) {
+//     const day = daysOfWeek[currentDate.getDay()];
+//     console.log('day',day);
+//     console.log("availability.day", availability[day]);
+//     console.log('ada',availability[day].isOff)
+//     if(availability[day].isOff == true) {
+//       console.log('inside here');
+//       currentDate.setDate(currentDate.getDate() + 1);
+//       continue;
+//     }
+//     let start = availability[day].startTime;
+//     const end = availability[day].endTime;
+//     while((convertToMinutes(start) + parseInt(duration)) <= convertToMinutes(end)) {
+//       const endTime = addMinutesToTime(start,duration);
+//       console.log('start',start);
+//       console.log('end',end);
+//       console.log('duration',duration);
+//       console.log('endTime', endTime);
+//       const slot = new Slot({
+//         serviceId: serviceId,
+//         date: currentDate,
+//         startTime: start,
+//         endTime: endTime,
+//       })
+//       const savedSlot = await slot.save();
+//       console.log('savedSlot', savedSlot);
+//       start = endTime;
+//     }
+//     currentDate.setDate(currentDate.getDate() + 1);
+//   }
+// }
+
+const generateSlots = async (serviceId, availability, durationHours) => {
   const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const currentDate = new Date();
-  for (let i = 0; i < 10; i++) {
+  
+  const totalSlotsDays = 30;  // Total number of days to generate slots for (excluding off days)
+  let generatedDaysCount = 0;  // Count of days slots have been generated for
+  let currentDate = new Date();
+
+  while (generatedDaysCount < totalSlotsDays) {
     const day = daysOfWeek[currentDate.getDay()];
-    console.log('day',day);
-    console.log("availability.day", availability[day]);
-    console.log('ada',availability[day].isOff)
-    if(availability[day].isOff == true) {
-      console.log('inside here');
+    if (!availability[day] || availability[day].isOff) {
+      // If the day is off or no availability info, just move to next day
       currentDate.setDate(currentDate.getDate() + 1);
       continue;
     }
+
     let start = availability[day].startTime;
     const end = availability[day].endTime;
-    while((convertToMinutes(start) + parseInt(duration)) <= convertToMinutes(end)) {
-      const endTime = addMinutesToTime(start,duration);
-      console.log('start',start);
-      console.log('end',end);
-      console.log('duration',duration);
-      console.log('endTime', endTime);
+
+    // Convert duration from hours to minutes
+    const durationMinutes = parseInt(durationHours * 60);
+
+    // Generate slots for the current day
+    while ((convertToMinutes(start) + durationMinutes) <= convertToMinutes(end)) {
+      const endTime = addMinutesToTime(start, durationMinutes);
+
       const slot = new Slot({
         serviceId: serviceId,
-        date: currentDate,
+        date: new Date(currentDate),  // Make sure to create a new Date object
         startTime: start,
         endTime: endTime,
-      })
-      const savedSlot = await slot.save();
-      console.log('savedSlot', savedSlot);
+      });
+
+      await slot.save();
       start = endTime;
     }
+
+    // Increment count after generating slots for this day
+    generatedDaysCount++;
+    // Move to next day
     currentDate.setDate(currentDate.getDate() + 1);
   }
-}
+};
+
 
 const upload = multer({ storage });
 
@@ -161,7 +205,7 @@ router.delete('/:id',   async (req, res) => {
     });
 
     // Remove the service from the database
-    await service.deleteOne({ "_id": req.params.id });;
+    await service.deleteOne({ "_id": req.params.id });
 
     res.status(200).json({ message: 'Service deleted successfully' });
   } catch (err) {
