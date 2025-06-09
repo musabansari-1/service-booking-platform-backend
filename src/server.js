@@ -81,7 +81,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Root route
-app.use('/', (req, res, next) => {
+app.get('/', (req, res, next) => {
   res.json({ message: 'Server is running' });
 });
 
